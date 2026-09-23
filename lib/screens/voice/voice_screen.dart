@@ -16,17 +16,14 @@ class VoiceScreen extends StatefulWidget {
 class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _customCommandController = TextEditingController();
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   final List<String> _quickCommandPresets = [
-    'Bắt đầu bấm giờ',
-    'Tạm dừng bấm giờ',
-    'Ghi vòng (Lap)',
-    'Đặt lại bấm giờ',
-    'Đặt báo thức lúc 7 giờ 30',
-    'Báo thức lúc 6h sáng',
-    'Hẹn giờ sau 10 phút',
-    'Đặt báo thức lúc 22h15',
+    'Bắt đầu',
+    'Kết thúc',
+    'Ghi vòng',
+    'Đặt lại',
+    'Báo thức 7 giờ 30',
+    'Sau 10 phút',
   ];
 
   @override
@@ -36,11 +33,9 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.25).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
 
     VoiceService.instance.isListeningNotifier.addListener(_onListeningChanged);
+    VoiceService.instance.lastErrorNotifier.addListener(_onErrorChanged);
   }
 
   void _onListeningChanged() {
@@ -52,9 +47,30 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
     }
   }
 
+  void _onErrorChanged() {
+    final err = VoiceService.instance.lastErrorNotifier.value;
+    if (err != null && mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text(err)),
+            ],
+          ),
+          backgroundColor: Colors.orange.shade800,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     VoiceService.instance.isListeningNotifier.removeListener(_onListeningChanged);
+    VoiceService.instance.lastErrorNotifier.removeListener(_onErrorChanged);
     _pulseController.dispose();
     _customCommandController.dispose();
     super.dispose();
@@ -117,118 +133,90 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                 builder: (context, isListening, child) {
                   return Column(
                     children: [
+                      // Stable Mic Button with gentle glow (No layout shaking)
                       SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            final progress = (_pulseAnimation.value - 1.0) / 0.25; // 0.0 to 1.0
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Acoustic sound wave ripple 3 (outermost)
-                                if (isListening)
-                                  Container(
-                                    width: 120 + 75 * progress,
-                                    height: 120 + 75 * progress,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.redAccent.withAlpha(((1.0 - progress) * 80).round()),
-                                        width: 2,
-                                      ),
+                        width: 140,
+                        height: 140,
+                        child: Center(
+                          child: AnimatedBuilder(
+                            animation: _pulseController,
+                            builder: (context, _) {
+                              final glowAlpha = isListening ? (50 + (40 * _pulseController.value).round()) : 40;
+                              return Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isListening ? Colors.redAccent : AppTheme.voiceColor,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (isListening ? Colors.redAccent : AppTheme.voiceColor).withAlpha(glowAlpha),
+                                      blurRadius: isListening ? 20 : 12,
+                                      spreadRadius: isListening ? 4 : 1,
                                     ),
-                                  ),
-                                // Acoustic sound wave ripple 2 (middle)
-                                if (isListening)
-                                  Container(
-                                    width: 120 + 40 * progress,
-                                    height: 120 + 40 * progress,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.redAccent.withAlpha(((1.0 - progress) * 40).round()),
-                                      border: Border.all(
-                                        color: Colors.redAccent.withAlpha(((1.0 - progress) * 140).round()),
-                                        width: 2.5,
-                                      ),
-                                    ),
-                                  ),
-                                // Core mic button with pulse scale and dynamic acoustic glow
-                                Transform.scale(
-                                  scale: isListening ? (1.0 + 0.08 * progress) : 1.0,
-                                  child: Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isListening ? Colors.redAccent : AppTheme.voiceColor,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: (isListening ? Colors.redAccent : AppTheme.voiceColor)
-                                              .withAlpha(isListening ? (80 + (60 * progress).round()) : 60),
-                                          blurRadius: isListening ? 28 : 16,
-                                          spreadRadius: isListening ? 6 : 2,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: _toggleListening,
-                                        customBorder: const CircleBorder(),
-                                        child: Icon(
-                                          isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                                          color: Colors.white,
-                                          size: 56,
-                                        ),
-                                      ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _toggleListening,
+                                    customBorder: const CircleBorder(),
+                                    child: Icon(
+                                      isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                                      color: Colors.white,
+                                      size: 56,
                                     ),
                                   ),
                                 ),
-                              ],
-                            );
-                          },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Fixed-height Equalizer Area (strictly 32px height to prevent any layout shifting)
+                      SizedBox(
+                        height: 32,
+                        child: Center(
+                          child: isListening
+                              ? AnimatedBuilder(
+                                  animation: _pulseController,
+                                  builder: (context, _) {
+                                    final p = _pulseController.value;
+                                    final heights = [
+                                      8.0 + 10.0 * math.sin(p * math.pi * 2).abs(),
+                                      12.0 + 14.0 * math.sin((p + 0.2) * math.pi * 2).abs(),
+                                      16.0 + 12.0 * math.sin((p + 0.4) * math.pi * 2).abs(),
+                                      18.0 + 10.0 * math.sin((p + 0.6) * math.pi * 2).abs(),
+                                      16.0 + 12.0 * math.sin((p + 0.8) * math.pi * 2).abs(),
+                                      12.0 + 14.0 * math.sin((p + 0.3) * math.pi * 2).abs(),
+                                      8.0 + 10.0 * math.sin((p + 0.5) * math.pi * 2).abs(),
+                                    ];
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: heights.map((h) {
+                                        return Container(
+                                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                                          width: 4,
+                                          height: h,
+                                          decoration: BoxDecoration(
+                                            color: Colors.redAccent,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    );
+                                  },
+                                )
+                              : const SizedBox.shrink(),
                         ),
                       ),
                       const SizedBox(height: 8),
 
-                      // Sound Wave Frequency Equalizer (active when listening)
-                      if (isListening) ...[
-                        AnimatedBuilder(
-                          animation: _pulseController,
-                          builder: (context, _) {
-                            final p = _pulseController.value;
-                            final heights = [
-                              10.0 + 16.0 * math.sin(p * math.pi * 2).abs(),
-                              16.0 + 22.0 * math.sin((p + 0.2) * math.pi * 2).abs(),
-                              22.0 + 20.0 * math.sin((p + 0.4) * math.pi * 2).abs(),
-                              28.0 + 16.0 * math.sin((p + 0.6) * math.pi * 2).abs(),
-                              22.0 + 20.0 * math.sin((p + 0.8) * math.pi * 2).abs(),
-                              16.0 + 22.0 * math.sin((p + 0.3) * math.pi * 2).abs(),
-                              10.0 + 16.0 * math.sin((p + 0.5) * math.pi * 2).abs(),
-                            ];
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: heights.map((h) {
-                                return Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                                  width: 4,
-                                  height: h,
-                                  decoration: BoxDecoration(
-                                    color: Colors.redAccent,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                );
-                              }).toList(),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-
                       Text(
-                        isListening ? 'ĐANG THU NHẬN SÓNG ÂM GIỌNG NÓI (vi-VN)...' : 'Chạm để nói câu lệnh',
+                        isListening ? 'ĐANG LẮNG NGHE TIẾNG VIỆT (vi-VN)...' : 'Chạm để nói câu lệnh tiếng Việt',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -237,8 +225,11 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Hỗ trợ đặt báo thức, bấm giờ, tạm dừng, reset, ghi vòng',
+                        isListening
+                            ? 'Nói rõ ràng: "Bắt đầu" hoặc "Kết thúc"'
+                            : 'Nói: "Bắt đầu" (chạy) • "Kết thúc" (dừng) • "Vòng" • "Đặt lại"',
                         style: TextStyle(fontSize: 12, color: theme.hintColor),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   );
