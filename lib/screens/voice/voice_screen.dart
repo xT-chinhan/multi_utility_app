@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../models/voice_command.dart';
+import '../../services/system_clock_service.dart';
 import '../../services/voice_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -16,15 +17,6 @@ class VoiceScreen extends StatefulWidget {
 class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _customCommandController = TextEditingController();
   late AnimationController _pulseController;
-
-  final List<String> _quickCommandPresets = [
-    'Bắt đầu',
-    'Kết thúc',
-    'Ghi vòng',
-    'Đặt lại',
-    'Báo thức 7 giờ 30',
-    'Sau 10 phút',
-  ];
 
   @override
   void initState() {
@@ -110,6 +102,27 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
     );
   }
 
+  List<String> _getPresets(String locale) {
+    if (locale.startsWith('en')) {
+      return [
+        'Set alarm at 7:30',
+        'Alarm in 10 minutes',
+        'Start',
+        'Stop',
+        'Lap',
+        'Reset',
+      ];
+    }
+    return [
+      'Báo thức 7 giờ 30',
+      'Sau 10 phút',
+      'Bắt đầu',
+      'Kết thúc',
+      'Ghi vòng',
+      'Đặt lại',
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -117,23 +130,140 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trợ Lý Giọng Nói AI'),
+        title: const Text('Báo Thức Giọng Nói Đa Ngôn Ngữ'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Requirement 3 Banner
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: AppTheme.alarmColor.withAlpha(50)),
+              ),
+              color: AppTheme.alarmColor.withAlpha(15),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.record_voice_over_rounded, color: AppTheme.alarmColor),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Yêu Cầu 3: Đặt giờ báo thức bằng giọng nói đa ngôn ngữ & đồng hồ thật (5đ)',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const SizedBox(height: 12),
+
+            // Language Selector Row
+            ValueListenableBuilder<String>(
+              valueListenable: voice.currentLocaleNotifier,
+              builder: (context, currentLocale, _) {
+                return Row(
+                  children: [
+                    const Text(
+                      'Ngôn ngữ:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(
+                            value: 'vi_VN',
+                            label: Text('Tiếng Việt 🇻🇳'),
+                            icon: Icon(Icons.language, size: 16),
+                          ),
+                          ButtonSegment(
+                            value: 'en_US',
+                            label: Text('English 🇺🇸'),
+                            icon: Icon(Icons.language, size: 16),
+                          ),
+                        ],
+                        selected: {currentLocale},
+                        onSelectionChanged: (newSelection) {
+                          voice.switchLanguage(newSelection.first);
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 12),
+
+            // Real System Clock Option Switch
+            ValueListenableBuilder<bool>(
+              valueListenable: SystemClockService.instance.useSystemClockNotifier,
+              builder: (context, useSystemClock, _) {
+                return Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Row(
+                            children: [
+                              Icon(Icons.alarm_on_rounded, color: AppTheme.alarmColor, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Dùng Đồng Hồ Thật Của Máy',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                          subtitle: const Text(
+                            'Tự động kích hoạt ứng dụng Clock thật của hệ thống Android',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          value: useSystemClock,
+                          onChanged: (val) {
+                            SystemClockService.instance.useSystemClockNotifier.value = val;
+                          },
+                        ),
+                        Divider(height: 1, color: Colors.grey.withAlpha(40)),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () => SystemClockService.instance.openSystemClock(),
+                              icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                              label: const Text('Mở App Đồng Hồ Thật', style: TextStyle(fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
 
             // Microphone Big Button with Acoustic Sound Wave Effect
             Center(
               child: ValueListenableBuilder<bool>(
                 valueListenable: voice.isListeningNotifier,
                 builder: (context, isListening, child) {
+                  final isEn = voice.currentLocaleNotifier.value.startsWith('en');
                   return Column(
                     children: [
-                      // Stable Mic Button with gentle glow (No layout shaking)
+                      // Stable Mic Button with gentle glow
                       SizedBox(
                         width: 140,
                         height: 140,
@@ -173,9 +303,9 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
 
-                      // Fixed-height Equalizer Area (strictly 32px height to prevent any layout shifting)
+                      // Fixed-height Equalizer Area
                       SizedBox(
                         height: 32,
                         child: Center(
@@ -213,10 +343,12 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                               : const SizedBox.shrink(),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
                       Text(
-                        isListening ? 'ĐANG LẮNG NGHE TIẾNG VIỆT (vi-VN)...' : 'Chạm để nói câu lệnh tiếng Việt',
+                        isListening
+                            ? (isEn ? 'LISTENING (English en_US)...' : 'ĐANG LẮNG NGHE (Tiếng Việt vi_VN)...')
+                            : (isEn ? 'Tap to Speak (English)' : 'Chạm để nói câu lệnh tiếng Việt'),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -226,8 +358,10 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                       const SizedBox(height: 4),
                       Text(
                         isListening
-                            ? 'Nói rõ ràng: "Bắt đầu" hoặc "Kết thúc"'
-                            : 'Nói: "Bắt đầu" (chạy) • "Kết thúc" (dừng) • "Vòng" • "Đặt lại"',
+                            ? (isEn ? 'Say: "Set alarm at 7:30" or "Start"' : 'Nói: "Báo thức 7 giờ 30" hoặc "Bắt đầu"')
+                            : (isEn
+                                ? 'Say: "Set alarm at 7:30" • "Start" • "Stop"'
+                                : 'Nói: "Báo thức 7 giờ 30" • "Bắt đầu" • "Kết thúc"'),
                         style: TextStyle(fontSize: 12, color: theme.hintColor),
                         textAlign: TextAlign.center,
                       ),
@@ -237,7 +371,7 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // Live recognized words card
             ValueListenableBuilder<String>(
@@ -278,110 +412,106 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
               elevation: 1,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.touch_app_rounded, color: AppTheme.voiceColor, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Thử Nhanh Câu Lệnh (1-Tap Test)',
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Icon(Icons.touch_app_rounded, color: AppTheme.voiceColor, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Thử Nhanh Câu Lệnh (1-Tap Test)',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _quickCommandPresets.map((cmd) {
-                        return ActionChip(
-                          avatar: const Icon(Icons.volume_up_rounded, size: 14),
-                          label: Text(cmd),
-                          onPressed: () => _executeCommand(cmd),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        );
-                      }).toList(),
-                    ),
                     const SizedBox(height: 12),
-                    // Manual command input for testing without microphone
-                    TextField(
-                      controller: _customCommandController,
-                      decoration: InputDecoration(
-                        hintText: 'Hoặc gõ câu lệnh vào đây để test...',
-                        hintStyle: TextStyle(fontSize: 13, color: theme.hintColor),
-                        prefixIcon: const Icon(Icons.keyboard_rounded),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.send_rounded, color: AppTheme.voiceColor),
-                          onPressed: () => _executeCommand(_customCommandController.text),
+                    ValueListenableBuilder<String>(
+                      valueListenable: voice.currentLocaleNotifier,
+                      builder: (context, locale, _) {
+                        final presets = _getPresets(locale);
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: presets.map((cmd) {
+                            return ActionChip(
+                              avatar: const Icon(Icons.volume_up_rounded, size: 16),
+                              label: Text(cmd),
+                              onPressed: () => _executeCommand(cmd),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Manual text input command test
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customCommandController,
+                            decoration: InputDecoration(
+                              hintText: 'Hoặc gõ câu lệnh vào đây để test...',
+                              hintStyle: const TextStyle(fontSize: 13),
+                              prefixIcon: const Icon(Icons.keyboard_outlined),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onSubmitted: _executeCommand,
+                          ),
                         ),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      ),
-                      onSubmitted: _executeCommand,
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          onPressed: () => _executeCommand(_customCommandController.text),
+                          icon: const Icon(Icons.send_rounded),
+                          style: IconButton.styleFrom(backgroundColor: AppTheme.voiceColor),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // Command History Feed
+            // History Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    'Lịch Sử Nhận Diện & Thực Thi',
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                const Text(
+                  'Lịch Sử Nhận Diện & Thực Thi',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                const SizedBox(width: 8),
                 ValueListenableBuilder<List<VoiceCommandResult>>(
                   valueListenable: voice.commandHistoryNotifier,
-                  builder: (context, list, _) {
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${list.length} lệnh',
-                          style: theme.textTheme.bodySmall?.copyWith(color: AppTheme.voiceColor),
-                        ),
-                        if (list.isNotEmpty) ...[
-                          const SizedBox(width: 4),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                            tooltip: 'Xóa lịch sử',
-                            onPressed: () => voice.clearHistory(),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ],
-                      ],
+                  builder: (context, history, child) {
+                    if (history.isEmpty) return const SizedBox.shrink();
+                    return TextButton.icon(
+                      onPressed: () => voice.clearHistory(),
+                      icon: const Icon(Icons.delete_sweep_outlined, size: 16),
+                      label: const Text('Xóa', style: TextStyle(fontSize: 12)),
                     );
                   },
                 ),
               ],
             ),
-            const SizedBox(height: 10),
 
+            const SizedBox(height: 8),
+
+            // History List
             ValueListenableBuilder<List<VoiceCommandResult>>(
               valueListenable: voice.commandHistoryNotifier,
               builder: (context, history, child) {
                 if (history.isEmpty) {
                   return Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(vertical: 24),
                     alignment: Alignment.center,
                     child: Text(
-                      'Chưa có câu lệnh nào được thực thi.\nHãy bấm mic hoặc chọn 1 câu lệnh mẫu ở trên!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: theme.hintColor),
+                      'Chưa có câu lệnh nào được thực thi',
+                      style: TextStyle(color: theme.hintColor, fontSize: 13),
                     ),
                   );
                 }
@@ -390,69 +520,33 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: history.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = history[index];
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: item.isSuccess
-                              ? AppTheme.voiceColor.withAlpha(60)
-                              : Colors.orange.withAlpha(60),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, idx) {
+                    final item = history[idx];
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: item.isSuccess
+                              ? AppTheme.voiceColor.withAlpha(30)
+                              : Colors.orange.withAlpha(30),
+                          child: Icon(
+                            item.isSuccess ? Icons.check_circle_outline : Icons.error_outline,
+                            color: item.isSuccess ? AppTheme.voiceColor : Colors.orange,
+                            size: 20,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: item.isSuccess
-                                  ? AppTheme.voiceColor.withAlpha(30)
-                                  : Colors.orange.withAlpha(30),
-                            ),
-                            child: Icon(
-                              item.isSuccess ? Icons.check_rounded : Icons.priority_high_rounded,
-                              color: item.isSuccess ? AppTheme.voiceColor : Colors.orange,
-                              size: 18,
-                            ),
+                        title: Text(
+                          '"${item.rawSpokenText}"',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        subtitle: Text(
+                          item.responseMessage,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: item.isSuccess ? Colors.green.shade700 : Colors.orange.shade900,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '"${item.rawSpokenText}"',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  item.responseMessage,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: item.isSuccess ? AppTheme.voiceColor : Colors.orange,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (item.type == VoiceCommandType.setAlarm)
-                            TextButton(
-                              onPressed: () => widget.onSwitchTab?.call(2), // Switch to Alarm tab
-                              child: const Text('Xem Báo Thức', style: TextStyle(fontSize: 11)),
-                            )
-                          else if (item.type == VoiceCommandType.startStopwatch ||
-                              item.type == VoiceCommandType.stopStopwatch ||
-                              item.type == VoiceCommandType.lapStopwatch)
-                            TextButton(
-                              onPressed: () => widget.onSwitchTab?.call(3), // Switch to Stopwatch tab
-                              child: const Text('Xem Bấm Giờ', style: TextStyle(fontSize: 11)),
-                            ),
-                        ],
+                        ),
                       ),
                     );
                   },
@@ -460,7 +554,7 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
               },
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
           ],
         ),
       ),

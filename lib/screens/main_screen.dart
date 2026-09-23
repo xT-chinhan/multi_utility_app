@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/alarm_manager.dart';
 import '../theme/app_theme.dart';
-import 'converter/converter_screen.dart';
-import 'youtube/youtube_screen.dart';
 import 'alarm/alarm_screen.dart';
 import 'alarm/widgets/alarm_ring_dialog.dart';
-import 'stopwatch/stopwatch_screen.dart';
+import 'profile/profile_screen.dart';
+import 'team/team_screen.dart';
+import 'translator/translator_screen.dart';
 import 'voice/voice_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -67,7 +67,7 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             Icon(Icons.hub_rounded, color: AppTheme.primaryBlue),
             SizedBox(width: 10),
-            Text('Mô Hình 8 Agent Swarm'),
+            Text('Kiến Trúc 10 Agent Swarm'),
           ],
         ),
         content: const SingleChildScrollView(
@@ -76,31 +76,33 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '🔹 4 Agent Phân Tích (Analysis Swarm):',
+                '🧠 5 Agent Phân Tích & Kịch Bản (Planning Swarm):',
                 style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
               ),
               SizedBox(height: 4),
-              Text('1. Agent Requirements & Domain Analyst: Đặc tả 5 chức năng, logic thông báo nhiệt độ.'),
-              Text('2. Agent UI/UX Architect: Thiết kế giao diện Material 3, bảng màu 5 tab và motion.'),
-              Text('3. Agent Media & Audio Architect: YouTube player lifecycle & PCM audio alert tone.'),
-              Text('4. Agent State & NLP Architect: Luồng reactive singleton & parser regex tiếng Việt.'),
+              Text('1. System & Platform Architect: Quyền AndroidManifest & BottomNavigationBar.'),
+              Text('2. Profile & Deep Link Architect: Kịch bản gọi điện thoại & mở app YouTube.'),
+              Text('3. Multilingual NLP Architect: Parser song ngữ Việt - Anh & Intent đồng hồ thật.'),
+              Text('4. ML Kit Vision & NLP Architect: Pipeline Text, Voice, OCR Scanner, Realtime Camera.'),
+              Text('5. Team Showcase & QA Lead: Đặc tả thẻ thành viên HUTECH & Barem điểm 10+.'),
               SizedBox(height: 12),
               Text(
-                '🔹 4 Agent Thực Thi (Execution Swarm):',
+                '⚡ 5 Agent Thực Thi & Code (Execution Swarm):',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
               ),
               SizedBox(height: 4),
-              Text('5. Agent Scaffold & Navigation: Cấu hình project, theme, model và router.'),
-              Text('6. Agent Converter & YouTube: Triển khai Module 1 (Đơn vị) & Module 2 (YouTube).'),
-              Text('7. Agent Alarm & Stopwatch: Triển khai Module 3 (Báo thức) & Module 4 (Bấm giờ).'),
-              Text('8. Agent Voice & QA Integrator: Triển khai Module 5 (Voice AI) & Kiểm thử.'),
+              Text('6. Core Config Engineer: Cài dependencies, cấp quyền & cấu hình minSdk 21.'),
+              Text('7. Profile Screen Developer: Triển khai màn hình Cá Nhân & url_launcher.'),
+              Text('8. Voice Alarm Engineer: Bộ nhận diện giọng nói & MethodChannel AlarmClock.'),
+              Text('9. ML Kit Developer: Triển khai 4 cấp độ dịch thuật Google ML Kit On-Device.'),
+              Text('10. Team Slider & Live QA: Triển khai PageView thẻ thành viên & Kiểm thử.'),
             ],
           ),
         ),
         actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Đã hiểu'),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Đóng'),
           ),
         ],
       ),
@@ -110,11 +112,11 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      const ConverterScreen(),
-      const YoutubeScreen(),
-      const AlarmScreen(),
-      const StopwatchScreen(),
+      const ProfileScreen(),
       VoiceScreen(onSwitchTab: _switchTab),
+      const TranslatorScreen(),
+      const TeamScreen(),
+      const AlarmScreen(),
     ];
 
     return Scaffold(
@@ -146,7 +148,7 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.hub_outlined),
-            tooltip: 'Kiến trúc 8 Agent Swarm',
+            tooltip: 'Kiến trúc 10 Agent Swarm',
             onPressed: _showArchitectureDialog,
           ),
           IconButton(
@@ -157,7 +159,7 @@ class _MainScreenState extends State<MainScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      // IndexedStack preserves state of video, timer, and inputs across tabs!
+      // IndexedStack preserves state of camera, inputs, and timer across tabs!
       body: IndexedStack(
         index: _currentIndex,
         children: screens,
@@ -167,29 +169,29 @@ class _MainScreenState extends State<MainScreen> {
         onDestinationSelected: _switchTab,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.swap_horiz_rounded),
-            selectedIcon: Icon(Icons.swap_horiz_rounded, color: AppTheme.converterColor),
-            label: 'Đổi Đơn Vị',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.smart_display_outlined),
-            selectedIcon: Icon(Icons.smart_display_rounded, color: AppTheme.youtubeColor),
-            label: 'YouTube',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.alarm_rounded),
-            selectedIcon: Icon(Icons.alarm_on_rounded, color: AppTheme.alarmColor),
-            label: 'Báo Thức',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.timer_outlined),
-            selectedIcon: Icon(Icons.timer_rounded, color: AppTheme.stopwatchColor),
-            label: 'Bấm Giờ',
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded, color: AppTheme.primaryBlue),
+            label: 'Cá Nhân',
           ),
           NavigationDestination(
             icon: Icon(Icons.mic_none_rounded),
             selectedIcon: Icon(Icons.mic_rounded, color: AppTheme.voiceColor),
-            label: 'Voice AI',
+            label: 'Báo Thức Voice',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.translate_rounded),
+            selectedIcon: Icon(Icons.g_translate_rounded, color: Colors.purple),
+            label: 'Dịch ML Kit',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.groups_outlined),
+            selectedIcon: Icon(Icons.groups_rounded, color: Colors.pink),
+            label: 'Nhóm SV',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.alarm_rounded),
+            selectedIcon: Icon(Icons.alarm_on_rounded, color: AppTheme.alarmColor),
+            label: 'Quản Lý Báo Thức',
           ),
         ],
       ),
@@ -198,33 +200,33 @@ class _MainScreenState extends State<MainScreen> {
 
   IconData _getTabIcon(int idx) {
     switch (idx) {
-      case 0: return Icons.swap_horiz_rounded;
-      case 1: return Icons.smart_display_rounded;
-      case 2: return Icons.alarm_rounded;
-      case 3: return Icons.timer_rounded;
-      case 4: return Icons.mic_rounded;
+      case 0: return Icons.person_rounded;
+      case 1: return Icons.mic_rounded;
+      case 2: return Icons.g_translate_rounded;
+      case 3: return Icons.groups_rounded;
+      case 4: return Icons.alarm_rounded;
       default: return Icons.dashboard_rounded;
     }
   }
 
   Color _getTabColor(int idx) {
     switch (idx) {
-      case 0: return AppTheme.converterColor;
-      case 1: return AppTheme.youtubeColor;
-      case 2: return AppTheme.alarmColor;
-      case 3: return AppTheme.stopwatchColor;
-      case 4: return AppTheme.voiceColor;
+      case 0: return AppTheme.primaryBlue;
+      case 1: return AppTheme.voiceColor;
+      case 2: return Colors.purple;
+      case 3: return Colors.pink;
+      case 4: return AppTheme.alarmColor;
       default: return AppTheme.primaryBlue;
     }
   }
 
   String _getTabTitle(int idx) {
     switch (idx) {
-      case 0: return 'Quy Đổi Đơn Vị';
-      case 1: return 'YouTube Player';
-      case 2: return 'Đồng Hồ Báo Thức';
-      case 3: return 'Đồng Hồ Bấm Giờ';
-      case 4: return 'Trợ Lý Giọng Nói';
+      case 0: return 'Cá Nhân (Yêu Cầu 2 - 3.5đ)';
+      case 1: return 'Báo Thức Giọng Nói (Yêu Cầu 3 - 5đ)';
+      case 2: return 'Google ML Kit Dịch Thuật (7đ - 10đ+)';
+      case 3: return 'Thông Tin Nhóm (Yêu Cầu 6)';
+      case 4: return 'Quản Lý Báo Thức & Giờ';
       default: return 'Smart Utility Hub';
     }
   }
