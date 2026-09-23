@@ -60,6 +60,9 @@ class MlkitTranslationService {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return '';
 
+    // Normalize multiple spaces and extra empty lines
+    final cleaned = trimmed.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+
     isTranslatingNotifier.value = true;
     translationErrorNotifier.value = null;
 
@@ -69,7 +72,7 @@ class MlkitTranslationService {
         targetLanguage: _currentTarget,
       );
 
-      final result = await _currentTranslator!.translateText(trimmed);
+      final result = await _currentTranslator!.translateText(cleaned);
       isTranslatingNotifier.value = false;
       return result;
     } catch (e) {
@@ -82,7 +85,7 @@ class MlkitTranslationService {
           sourceLanguage: _currentSource,
           targetLanguage: _currentTarget,
         );
-        final result = await _currentTranslator!.translateText(trimmed);
+        final result = await _currentTranslator!.translateText(cleaned);
         isTranslatingNotifier.value = false;
         return result;
       } catch (retryError) {

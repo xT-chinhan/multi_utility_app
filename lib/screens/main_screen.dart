@@ -222,11 +222,11 @@ class _MainScreenState extends State<MainScreen> {
 
   String _getTabTitle(int idx) {
     switch (idx) {
-      case 0: return 'Cá Nhân (Yêu Cầu 2 - 3.5đ)';
-      case 1: return 'Báo Thức Giọng Nói (Yêu Cầu 3 - 5đ)';
-      case 2: return 'Google ML Kit Dịch Thuật (7đ - 10đ+)';
-      case 3: return 'Thông Tin Nhóm (Yêu Cầu 6)';
-      case 4: return 'Quản Lý Báo Thức & Giờ';
+      case 0: return 'Cá Nhân (YC2 - 3.5đ)';
+      case 1: return 'Báo Thức Voice (YC3 - 5đ)';
+      case 2: return 'Dịch ML Kit (7đ - 10đ+)';
+      case 3: return 'Thông Tin Nhóm (YC6)';
+      case 4: return 'Quản Lý Báo Thức';
       default: return 'Smart Utility Hub';
     }
   }

@@ -126,67 +126,81 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final voice = VoiceService.instance;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Báo Thức Giọng Nói Đa Ngôn Ngữ'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Requirement 3 Banner
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: AppTheme.alarmColor.withAlpha(50)),
-              ),
-              color: AppTheme.alarmColor.withAlpha(15),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.record_voice_over_rounded, color: AppTheme.alarmColor),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'Yêu Cầu 3: Đặt giờ báo thức bằng giọng nói đa ngôn ngữ & đồng hồ thật (5đ)',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Requirement 3 Banner
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: AppTheme.alarmColor.withAlpha(50)),
+            ),
+            color: AppTheme.alarmColor.withAlpha(15),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Icon(Icons.record_voice_over_rounded, color: AppTheme.alarmColor),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Yêu Cầu 3: Đặt giờ báo thức bằng giọng nói đa ngôn ngữ & đồng hồ thật (5đ)',
+                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-            // Language Selector Row
-            ValueListenableBuilder<String>(
-              valueListenable: voice.currentLocaleNotifier,
-              builder: (context, currentLocale, _) {
-                return Row(
+          // Responsive Language Selector Row (Zero pixel overflow)
+          ValueListenableBuilder<String>(
+            valueListenable: voice.currentLocaleNotifier,
+            builder: (context, currentLocale, _) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade900 : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: theme.dividerColor.withAlpha(50)),
+                ),
+                child: Row(
                   children: [
                     const Text(
                       'Ngôn ngữ:',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: SegmentedButton<String>(
+                        showSelectedIcon: false,
+                        style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact,
+                          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 4)),
+                        ),
                         segments: const [
                           ButtonSegment(
                             value: 'vi_VN',
-                            label: Text('Tiếng Việt 🇻🇳'),
-                            icon: Icon(Icons.language, size: 16),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Tiếng Việt 🇻🇳', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
                           ),
                           ButtonSegment(
                             value: 'en_US',
-                            label: Text('English 🇺🇸'),
-                            icon: Icon(Icons.language, size: 16),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('English 🇺🇸', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
                           ),
                         ],
                         selected: {currentLocale},
@@ -197,9 +211,10 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                       ),
                     ),
                   ],
-                );
-              },
-            ),
+                ),
+              );
+            },
+          ),
 
             const SizedBox(height: 12),
 
@@ -552,7 +567,6 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
             const SizedBox(height: 24),
           ],
         ),
-      ),
-    );
+      );
   }
 }

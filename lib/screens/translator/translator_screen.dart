@@ -16,7 +16,8 @@ class TranslatorScreen extends StatefulWidget {
   State<TranslatorScreen> createState() => _TranslatorScreenState();
 }
 
-class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerProviderStateMixin {
+class _TranslatorScreenState extends State<TranslatorScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   // Text & Voice Tab State
@@ -160,6 +161,10 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
       _sourceLang = _targetLang;
       _targetLang = temp;
     });
+    MlkitTranslationService.instance.setLanguagePair(
+      source: _sourceLang,
+      target: _targetLang,
+    );
     if (_textInputController.text.isNotEmpty) {
       _performTextTranslation();
     }
@@ -181,60 +186,119 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Google ML Kit Dịch Thuật'),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.primaryBlue,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppTheme.primaryBlue,
-          indicatorWeight: 3,
-          tabs: const [
-            Tab(icon: Icon(Icons.translate_rounded), text: 'Text & Voice\n(7đ - 9đ)'),
-            Tab(icon: Icon(Icons.document_scanner_rounded), text: 'Ảnh Chụp\n(10đ)'),
-            Tab(icon: Icon(Icons.videocam_rounded), text: 'Realtime\n(Điểm +)'),
-          ],
+    return Column(
+      children: [
+        // Modern Pill-style in-body TabBar (Zero overlap, perfectly responsive)
+        Container(
+          margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: TabBar(
+            controller: _tabController,
+            indicator: BoxDecoration(
+              color: AppTheme.primaryBlue,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            labelColor: Colors.white,
+            unselectedLabelColor: isDark ? Colors.white70 : Colors.black87,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+            indicatorSize: TabBarIndicatorSize.tab,
+            tabs: const [
+              Tab(
+                height: 38,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.translate_rounded, size: 16),
+                      SizedBox(width: 4),
+                      Text('Text & Voice', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+              Tab(
+                height: 38,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.document_scanner_rounded, size: 16),
+                      SizedBox(width: 4),
+                      Text('Quét Ảnh OCR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+              Tab(
+                height: 38,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.videocam_rounded, size: 16),
+                      SizedBox(width: 4),
+                      Text('Realtime Cam', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildTextAndVoiceTab(isDark),
-          _buildImageOcrTab(isDark),
-          const RealtimeCameraView(),
-        ],
-      ),
+
+        // Tab Content View
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildTextAndVoiceTab(isDark),
+              _buildImageOcrTab(isDark),
+              const RealtimeCameraView(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   // --- WIDGET TAB 1: TEXT & VOICE ---
   Widget _buildTextAndVoiceTab(bool isDark) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Language selector bar
+          // Language selector bar with ZERO overflow guarantee
           _buildLanguageSelectorBar(isDark),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // Input Text Card (Requirement: Dịch text 7đ)
+          // Input Text Card (Requirement: Dịch text 7đ & voice 9đ)
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 1,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Nhập văn bản nguồn:',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      const Expanded(
+                        child: Text(
+                          'Nhập văn bản nguồn:',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       if (_textInputController.text.isNotEmpty)
                         GestureDetector(
@@ -254,41 +318,66 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                     maxLines: 4,
                     decoration: const InputDecoration(
                       hintText: 'Nhập nội dung cần dịch hoặc bấm Micro bên dưới...',
+                      hintStyle: TextStyle(fontSize: 13),
                       border: InputBorder.none,
                     ),
                   ),
                   const Divider(),
+                  const SizedBox(height: 4),
+
+                  // Responsive Buttons Row: 100% immune to pixel overflow
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Voice to Text Button (Requirement: Dịch từ giọng nói 9đ)
-                      ElevatedButton.icon(
-                        onPressed: _isSpeechListening ? _stopVoice : _startVoiceToTranslate,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isSpeechListening ? Colors.redAccent : Colors.amber.shade700,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      Expanded(
+                        flex: 6,
+                        child: ElevatedButton.icon(
+                          onPressed: _isSpeechListening ? _stopVoice : _startVoiceToTranslate,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _isSpeechListening ? Colors.redAccent : Colors.amber.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          icon: Icon(_isSpeechListening ? Icons.stop_rounded : Icons.mic_rounded, size: 18),
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _isSpeechListening ? 'Đang nghe...' : 'Nói để dịch (9đ)',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
                         ),
-                        icon: Icon(_isSpeechListening ? Icons.stop_rounded : Icons.mic_rounded, size: 18),
-                        label: Text(_isSpeechListening ? 'Đang nghe...' : 'Nói để dịch (9đ)'),
                       ),
 
+                      const SizedBox(width: 8),
+
                       // Manual Translate Button (Requirement: Dịch text 7đ)
-                      ElevatedButton.icon(
-                        onPressed: _isTranslating ? null : _performTextTranslation,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBlue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      Expanded(
+                        flex: 4,
+                        child: ElevatedButton.icon(
+                          onPressed: _isTranslating ? null : _performTextTranslation,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          icon: _isTranslating
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.arrow_forward_rounded, size: 16),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Dịch (7đ)',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
                         ),
-                        icon: _isTranslating
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                              )
-                            : const Icon(Icons.arrow_forward_rounded, size: 18),
-                        label: const Text('Dịch (7đ)'),
                       ),
                     ],
                   ),
@@ -297,7 +386,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Output Result Card
           Card(
@@ -305,7 +394,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
             elevation: 2,
             color: isDark ? Colors.grey.shade900 : Colors.blue.shade50,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -315,12 +404,12 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                       const Expanded(
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
+                            Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Bản dịch (Google ML Kit):',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -331,6 +420,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                         IconButton(
                           icon: const Icon(Icons.copy_rounded, size: 18),
                           tooltip: 'Sao chép',
+                          visualDensity: VisualDensity.compact,
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: _translatedResult));
                             _showToast('Đã sao chép bản dịch vào bộ nhớ tạm!');
@@ -338,13 +428,13 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                         ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     _translatedResult.isEmpty
                         ? 'Kết quả dịch on-device sẽ hiển thị tại đây...'
                         : _translatedResult,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: _translatedResult.isEmpty ? FontWeight.normal : FontWeight.bold,
                       color: _translatedResult.isEmpty ? Colors.grey : (isDark ? Colors.white : Colors.black87),
                     ),
@@ -361,7 +451,8 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
   // --- WIDGET TAB 2: IMAGE OCR TRANSLATION (10đ) ---
   Widget _buildImageOcrTab(bool isDark) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -375,21 +466,21 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
             ),
             child: const Row(
               children: [
-                Icon(Icons.camera_alt_rounded, color: Colors.purple),
-                SizedBox(width: 10),
+                Icon(Icons.camera_alt_rounded, color: Colors.purple, size: 20),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Yêu Cầu 4 (10đ): Trích xuất chữ bằng ML Kit OCR từ Camera/Thư viện và dịch tự động',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.purple),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Colors.purple),
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // Two Action Buttons: Camera & Gallery
+          // Two Action Buttons: Camera & Gallery (with FittedBox to guarantee 0 overflow)
           Row(
             children: [
               Expanded(
@@ -398,29 +489,35 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple.shade600,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.photo_camera_rounded),
-                  label: const Text('Chụp Ảnh (10đ)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.photo_camera_rounded, size: 18),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Chụp Ảnh (10đ)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _isOcrScanning ? null : () => _pickAndTranslateImage(ImageSource.gallery),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.photo_library_rounded),
-                  label: const Text('Chọn Thư Viện', style: TextStyle(fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.photo_library_rounded, size: 18),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Chọn Thư Viện', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           if (_isOcrScanning)
             const Center(
@@ -441,30 +538,33 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  height: 200,
+                  height: 180,
                   width: double.infinity,
                   color: Colors.black12,
                   child: Image.file(_selectedImage!, fit: BoxFit.contain),
                 ),
               ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Extracted OCR text
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.text_snippet_rounded, color: Colors.blue),
+                        Icon(Icons.text_snippet_rounded, color: Colors.blue, size: 18),
                         SizedBox(width: 8),
-                        Text(
-                          'Văn bản trích xuất từ ảnh (ML Kit OCR):',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        Expanded(
+                          child: Text(
+                            'Văn bản trích xuất từ ảnh (ML Kit OCR):',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -474,6 +574,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                       style: TextStyle(
                         fontStyle: _extractedOcrText.isEmpty ? FontStyle.italic : FontStyle.normal,
                         color: _extractedOcrText.isEmpty ? Colors.grey : null,
+                        fontSize: 13.5,
                       ),
                     ),
                   ],
@@ -481,24 +582,27 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             // Translated OCR result
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               color: isDark ? Colors.grey.shade900 : Colors.purple.shade50,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.g_translate_rounded, color: Colors.purple),
+                        Icon(Icons.g_translate_rounded, color: Colors.purple, size: 18),
                         SizedBox(width: 8),
-                        Text(
-                          'Bản dịch ML Kit từ ảnh chụp:',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        Expanded(
+                          child: Text(
+                            'Bản dịch ML Kit từ ảnh chụp:',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -507,7 +611,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                       _translatedOcrResult.isEmpty ? '(Kết quả dịch sẽ hiện tại đây)' : _translatedOcrResult,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 15,
                         color: _translatedOcrResult.isEmpty ? Colors.grey : Colors.purple.shade800,
                       ),
                     ),
@@ -521,49 +625,72 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
     );
   }
 
-  // --- LANGUAGE SELECTOR BAR ---
+  // --- RESPONSIVE LANGUAGE SELECTOR BAR (Immune to Overflows) ---
   Widget _buildLanguageSelectorBar(bool isDark) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Source Language Dropdown
-            DropdownButton<TranslateLanguage>(
-              value: _sourceLang,
-              underline: const SizedBox.shrink(),
-              items: _supportedLanguages.map((item) {
-                return DropdownMenuItem<TranslateLanguage>(
-                  value: item['lang'] as TranslateLanguage,
-                  child: Text('${item['flag']} ${item['name']}'),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _sourceLang = val);
-              },
+            // Source Language Dropdown with Expanded + isExpanded
+            Expanded(
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<TranslateLanguage>(
+                  value: _sourceLang,
+                  isExpanded: true,
+                  items: _supportedLanguages.map((item) {
+                    return DropdownMenuItem<TranslateLanguage>(
+                      value: item['lang'] as TranslateLanguage,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${item['flag']} ${item['name']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setState(() => _sourceLang = val);
+                  },
+                ),
+              ),
             ),
 
             // Swap Button
             IconButton(
               icon: const Icon(Icons.swap_horiz_rounded, color: AppTheme.primaryBlue),
+              tooltip: 'Đổi chiều dịch',
+              visualDensity: VisualDensity.compact,
               onPressed: _swapLanguages,
             ),
 
-            // Target Language Dropdown
-            DropdownButton<TranslateLanguage>(
-              value: _targetLang,
-              underline: const SizedBox.shrink(),
-              items: _supportedLanguages.map((item) {
-                return DropdownMenuItem<TranslateLanguage>(
-                  value: item['lang'] as TranslateLanguage,
-                  child: Text('${item['flag']} ${item['name']}'),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _targetLang = val);
-              },
+            // Target Language Dropdown with Expanded + isExpanded
+            Expanded(
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<TranslateLanguage>(
+                  value: _targetLang,
+                  isExpanded: true,
+                  items: _supportedLanguages.map((item) {
+                    return DropdownMenuItem<TranslateLanguage>(
+                      value: item['lang'] as TranslateLanguage,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${item['flag']} ${item['name']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setState(() => _targetLang = val);
+                  },
+                ),
+              ),
             ),
           ],
         ),

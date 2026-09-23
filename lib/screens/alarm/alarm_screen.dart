@@ -178,16 +178,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
     final formattedDate = '$dayName, $dayStr/$monthStr/${_currentTime.year}';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đồng Hồ Báo Thức'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.alarm_add_rounded),
-            tooltip: 'Thêm báo thức',
-            onPressed: _showAddAlarmDialog,
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.alarmColor,
         foregroundColor: Colors.white,

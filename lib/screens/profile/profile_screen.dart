@@ -146,11 +146,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Khoa Công Nghệ Thông Tin • ĐH HUTECH',
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey.shade700,
-                      fontSize: 14,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Khoa Công Nghệ Thông Tin • ĐH HUTECH',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.grey.shade700,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -192,6 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Text(
                   'Yêu Cầu 2: Tương Tác Ứng Dụng (3.5đ)',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -210,9 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Số Điện Thoại Cài Đặt:',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      const Expanded(
+                        child: Text(
+                          'Số Điện Thoại Cài Đặt:',
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       TextButton.icon(
                         onPressed: () {
@@ -249,12 +256,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           const Icon(Icons.contact_phone_rounded, color: AppTheme.primaryBlue),
                           const SizedBox(width: 12),
-                          Text(
-                            _phoneController.text.isEmpty ? 'Chưa thiết lập' : _phoneController.text,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.1,
+                          Expanded(
+                            child: Text(
+                              _phoneController.text.isEmpty ? 'Chưa thiết lập' : _phoneController.text,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.1,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -273,14 +283,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF10B981), // Emerald Green
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 3,
             ),
             icon: const Icon(Icons.phone_in_talk_rounded, size: 24),
-            label: const Text(
-              'Gọi Điện Đến SĐT Đã Cài Đặt',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            label: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'Gọi Điện Đến SĐT Đã Cài Đặt',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
 
@@ -292,14 +305,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444), // YouTube Red
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 3,
             ),
             icon: const Icon(Icons.smart_display_rounded, size: 26),
-            label: const Text(
-              'Gọi Tới Ứng Dụng YouTube',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            label: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'Gọi Tới Ứng Dụng YouTube',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
 
