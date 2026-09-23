@@ -188,9 +188,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Icon(Icons.stars_rounded, color: Colors.amber.shade900, size: 20),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Yêu Cầu 2: Tương Tác Ứng Dụng (3.5đ)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              const Expanded(
+                child: Text(
+                  'Yêu Cầu 2: Tương Tác Ứng Dụng (3.5đ)',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

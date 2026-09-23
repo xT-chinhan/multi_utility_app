@@ -215,19 +215,14 @@ class _VoiceScreenState extends State<VoiceScreen> with SingleTickerProviderStat
                       children: [
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: const Row(
-                            children: [
-                              Icon(Icons.alarm_on_rounded, color: AppTheme.alarmColor, size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                'Dùng Đồng Hồ Thật Của Máy',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                            ],
+                          secondary: const Icon(Icons.alarm_on_rounded, color: AppTheme.alarmColor, size: 24),
+                          title: const Text(
+                            'Dùng Đồng Hồ Thật Của Máy',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                           ),
                           subtitle: const Text(
-                            'Tự động kích hoạt ứng dụng Clock thật của hệ thống Android',
-                            style: TextStyle(fontSize: 12),
+                            'Kích hoạt app Clock thật của hệ thống Android',
+                            style: TextStyle(fontSize: 11.5),
                           ),
                           value: useSystemClock,
                           onChanged: (val) {

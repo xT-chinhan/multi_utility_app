@@ -312,15 +312,20 @@ class _TranslatorScreenState extends State<TranslatorScreen> with SingleTickerPr
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Bản dịch (Google ML Kit On-Device):',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                        ],
+                      const Expanded(
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Bản dịch (Google ML Kit):',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       if (_translatedResult.isNotEmpty)
                         IconButton(
